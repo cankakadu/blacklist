@@ -23,35 +23,37 @@ public class BlacklistScreen extends Screen {
         super(Text.literal("Inventory Blacklist"));
     }
 
-    @Override
-    protected void init() {
-        super.init();
+   @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        context.fillGradient(0, 0, this.width, this.height, 0xAA101010, 0xEE181818);
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
 
-        int centerX = this.width / 2;
-        int centerY = this.height / 2;
+        super.render(context, mouseX, mouseY, delta);
 
-        this.searchBox = new TextFieldWidget(this.textRenderer, centerX - 100, centerY - 80, 200, 20, Text.literal("Suche..."));
-        this.searchBox.setChangedListener(s -> updateSearch());
-        this.addDrawableChild(this.searchBox);
+        int startX = this.width / 2 - 120;
+        int startY = this.height / 2 - 50;
+        int index = 0;
 
-        this.addDrawableChild(ButtonWidget.builder(Text.literal("Fertig"), button -> {
-            InventoryBlacklistClient.CONFIG.save();
-            this.close();
-        }).dimensions(centerX - 75, centerY + 90, 150, 20).build());
+        for (int i = page * ITEMS_PER_PAGE; i < Math.min(filteredItems.size(), (page + 1) * ITEMS_PER_PAGE); i++) {
+            Item item = filteredItems.get(i);
+            int x = startX + (index % 7) * 36;
+            int y = startY + (index / 7) * 36;
 
-        updateSearch();
-    }
-
-    private void updateSearch() {
-        filteredItems.clear();
-        String query = searchBox != null ? searchBox.getText().toLowerCase() : "";
-        for (Item item : Registries.ITEM) {
             ItemStack stack = new ItemStack(item);
-            if (stack.getName().getString().toLowerCase().contains(query)) {
-                filteredItems.add(item);
+            String itemId = Registries.ITEM.getId(item).toString();
+            boolean isBlacklisted = InventoryBlacklistClient.CONFIG.blacklistedItems.contains(itemId);
+
+            int bgColor = isBlacklisted ? 0xFF2E7D32 : 0xFF333333;
+            context.fill(x - 2, y - 2, x + 18, y + 18, bgColor);
+
+            context.drawItem(stack, x, y);
+
+            if (mouseX >= x && mouseX <= x + 16 && mouseY >= y && mouseY <= y + 16) {
+                context.drawTooltip(this.textRenderer, Screen.getTooltipFromItem(this.client, stack), mouseX, mouseY);
             }
+
+            index++;
         }
-        page = 0;
     }
 
     @Override
