@@ -80,7 +80,7 @@ public class BlacklistScreen extends Screen {
             context.drawItem(stack, x, y);
 
             if (mouseX >= x && mouseX <= x + 16 && mouseY >= y && mouseY <= y + 16) {
-                context.drawTooltip(this.textRenderer, stack, mouseX, mouseY);
+                context.drawTooltip(this.textRenderer, Screen.getTooltipFromItem(this.client, stack), mouseX, mouseY);
             }
 
             index++;
