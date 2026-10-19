@@ -23,8 +23,9 @@ public class BlacklistScreen extends Screen {
         super(Text.literal("Inventory Blacklist"));
     }
 
-   @Override
+@Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        this.renderBackground(context, mouseX, mouseY, delta);
         context.fillGradient(0, 0, this.width, this.height, 0xAA101010, 0xEE181818);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
 
@@ -55,68 +56,3 @@ public class BlacklistScreen extends Screen {
             index++;
         }
     }
-
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        context.fillGradient(0, 0, this.width, this.height, 0xAA101010, 0xEE181818);
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
-
-        super.render(context, mouseX, mouseY, delta);
-
-        int startX = this.width / 2 - 120;
-        int startY = this.height / 2 - 50;
-        int index = 0;
-
-        for (int i = page * ITEMS_PER_PAGE; i < Math.min(filteredItems.size(), (page + 1) * ITEMS_PER_PAGE); i++) {
-            Item item = filteredItems.get(i);
-            int x = startX + (index % 7) * 36;
-            int y = startY + (index / 7) * 36;
-
-            ItemStack stack = new ItemStack(item);
-            String itemId = Registries.ITEM.getId(item).toString();
-            boolean isBlacklisted = InventoryBlacklistClient.CONFIG.blacklistedItems.contains(itemId);
-
-            int bgColor = isBlacklisted ? 0xFF2E7D32 : 0xFF333333;
-            context.fill(x - 2, y - 2, x + 18, y + 18, bgColor);
-
-            context.drawItem(stack, x, y);
-
-            if (mouseX >= x && mouseX <= x + 16 && mouseY >= y && mouseY <= y + 16) {
-                context.drawTooltip(this.textRenderer, Screen.getTooltipFromItem(this.client, stack), mouseX, mouseY);
-            }
-
-            index++;
-        }
-    }
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        int startX = this.width / 2 - 120;
-        int startY = this.height / 2 - 50;
-        int index = 0;
-
-        for (int i = page * ITEMS_PER_PAGE; i < Math.min(filteredItems.size(), (page + 1) * ITEMS_PER_PAGE); i++) {
-            Item item = filteredItems.get(i);
-            int x = startX + (index % 7) * 36;
-            int y = startY + (index / 7) * 36;
-
-            if (mouseX >= x - 2 && mouseX <= x + 18 && mouseY >= y - 2 && mouseY <= y + 18) {
-                String itemId = Registries.ITEM.getId(item).toString();
-                if (InventoryBlacklistClient.CONFIG.blacklistedItems.contains(itemId)) {
-                    InventoryBlacklistClient.CONFIG.blacklistedItems.remove(itemId);
-                } else {
-                    InventoryBlacklistClient.CONFIG.blacklistedItems.add(itemId);
-                }
-                InventoryBlacklistClient.CONFIG.save();
-                return true;
-            }
-            index++;
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    @Override
-    public boolean shouldPause() {
-        return false;
-    }
-}
